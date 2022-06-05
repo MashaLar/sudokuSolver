@@ -1,0 +1,209 @@
+# sudoku.kv file
+#:kivy 1.9.1
+#: import sub re.sub
+
+<SudokuScreen>:
+	grid_widget: grid_widget
+	canvas:
+		Color:
+			rgb: 0.11, 0.11, 0.11
+		Rectangle:
+			pos: self.pos
+			size: self.size
+	BoxLayout:
+		orientation: 'vertical'
+		padding: (10,10,10,10)
+		height: root.height
+		width: root.width
+		spacing: 5
+		AnchorLayout:	
+			size: root.width - 20, root.height * 0.05
+			anchor_x: 'right'
+			anchor_y: 'top'
+			size_hint_y: None
+			Label:
+				text: 'Sudoku puzzle:'
+				text_size: self.size
+				font_size: '16sp'
+				halign: 'left'
+				valign: 'top'
+				size_hint_y: None
+		SudokuGrid:
+			id: grid_widget
+			size: root.width - 20, root.height * 0.4
+			minimum_size: [400, 200]
+			size_hint_x: None
+		RelativeLayout:	
+			size: root.width - 20, root.height * 0.4
+			padding: (10,10,10,10)
+			size_hint: None, None
+			Button:
+				halign: "left"
+				text: 'CLEAN'
+				color: 0,0,0,1 
+				bold: True
+				pos: (0,  root.height * 0.325)
+				size_hint: None, None
+				size: 90, 30
+				background_color: 0,0,0,0
+				font_size: '20sp'
+				text_size: self.size     
+				halign: 'center'
+				valign: 'middle'
+				on_press: root.grid_widget.clear()
+				canvas.before:
+					Color:
+						rgba: (1,.24,0,1) if self.state=='normal' else (0.73,.18,0,1)  # visual feedback of press
+					RoundedRectangle:
+						pos: self.pos
+						size: 90, 30
+						radius: [12,] 
+			Button:
+				text: 'SOLVE'
+				color: 0,0,0,1 
+				bold: True
+				pos: (root.width - 160, root.height * 0.325)
+				size_hint: None, None
+				size: 130, 30
+				background_color: 0,0,0,0
+				font_size: '20sp'
+				text_size: self.size     
+				halign: 'center'
+				valign: 'middle'
+				on_press: root.solve_button_action()
+				canvas.before:
+					Color:
+						rgba: (1,.53,.39,1) if self.state=='normal' else (0.71,.41,.32,1)  # visual feedback of press
+					RoundedRectangle:
+						pos: self.pos
+						size: 140, 30
+						radius: [12,] 
+			Button:
+				halign: "left"
+				text: 'Export photo'
+				color: 0,0,0,1 
+				bold: True
+				pos: (50,  root.height * 0.225)
+				size_hint: None, None
+				size: 130, 40
+				background_color: 0,0,0,0
+				font_size: '18sp'
+				text_size: self.size     
+				halign: 'center'
+				valign: 'middle'
+				on_release: root.export_button_action()
+				canvas.before:
+					Color:
+						rgba: (1,.53,.39,1) if self.state=='normal' else (0.71,.41,.32,1)  # visual feedback of press
+					RoundedRectangle:
+						pos: self.pos
+						size: 130, 40
+						radius: [14,] 
+			Button:
+				text: 'Scan sudoku'
+				color: 0,0,0,1 
+				bold: True
+				pos: (root.width - 210, root.height * 0.225)
+				size_hint: None, None
+				size: 130, 40
+				background_color: 0,0,0,0
+				font_size: '18sp'
+				text_size: self.size     
+				halign: 'center'
+				valign: 'middle'
+				on_press: root.manager.current = 'camera'
+				canvas.before:
+					Color:
+						rgba: (1,.53,.39,1) if self.state=='normal' else (0.71,.41,.32,1)  # visual feedback of press
+					RoundedRectangle:
+						pos: self.pos
+						size: 130, 40
+						radius: [14,] 
+		
+			Label:
+				text: 'Yes, I am mobile application,\nbut I can have footer too!\nConfidence is when you stop using\na PENCIL while solving SUDOKU.'
+				size_hint: None, None
+				pos: 70, root.height * 0.01
+				halign: 'left'
+				font_name: "Comic"
+				font_size: '14sp'
+				canvas.before:
+					Rectangle:
+						pos: -10, -40
+						size: root.width, root.height * 0.25
+						source: "./images/footer.png"
+
+<ScreenCamera>:
+	BoxLayout:
+		orientation: 'vertical'
+		Camera:
+			id: camera
+			resolution: (640, 480)
+			play: False
+		ToggleButton:
+			text: 'Play'
+			on_press: camera.play = not camera.play
+			size_hint_y: None
+			height: '48dp'
+		Button:
+			text: 'Capture'
+			size_hint_y: None
+			height: '48dp'
+			on_press: root.capture()
+		Button:
+			text: 'Back'
+			size_hint_y: None
+			height: '48dp'
+			on_press: root.manager.current = 'main'
+
+<SudokuSquare>:
+    background_color: [0.2,0.2,0.2,1]
+    foreground_color: [1,1,1,1]
+    selection_color:  [1,1,1,0.2]
+	size: [44, 44]
+    text: ''
+    input_filter:
+        lambda substring, from_undo: sub('\D', '', substring) \
+        [:1 - len(self.text)]
+    multiline: 'False'
+    font_size: '20sp'
+    write_tab: False
+	halign: 'center'					
+				
+<LoadDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser
+            path: "."
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel(root.popup)
+            Button:
+                text: "Load"
+                on_release: root.load(filechooser.path, filechooser.selection)
+				
+<ErrorPopup>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+		Label:
+		    text: root.information
+		    text_size: self.size
+		    font_size: '14sp'
+            halign: 'left'
+            valign: 'top'
+			pos: (10, 20)
+		    size_hint_y: 0.5
+        Button:
+		    size_hint: None, None
+            size: 80, 30
+            text: "OK"
+			pos: (1000, 0)
+            on_release: root.ok(root.popup)
